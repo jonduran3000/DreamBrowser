@@ -18,20 +18,36 @@
             style="@style/Widget.MaterialComponents.Toolbar.Surface"
             android:elevation="4dp"
             app:layout_scrollFlags="scroll|enterAlways">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/input"
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginEnd="16dp"
-                android:background="@android:color/transparent"
-                android:hint="@string/input_hint"
-                android:importantForAutofill="no"
-                android:inputType="text|textUri"
-                android:selectAllOnFocus="true"
-                android:singleLine="true"
-                android:textColorHint="?android:textColorSecondaryInverse"
-                android:textColor="@color/colorOnSurface"
-                tools:ignore="UnusedAttribute" />
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/input"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="16dp"
+                    android:background="@android:color/transparent"
+                    android:hint="@string/input_hint"
+                    android:importantForAutofill="no"
+                    android:inputType="text|textUri"
+                    android:selectAllOnFocus="true"
+                    android:singleLine="true"
+                    android:textColorHint="?android:textColorSecondaryInverse"
+                    android:textColor="@color/colorOnSurface"
+                    tools:ignore="UnusedAttribute" />
+                <androidx.appcompat.widget.AppCompatImageButton
+                    android:id="@+id/menuButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?android:selectableItemBackgroundBorderless"
+                    android:minWidth="48dp"
+                    android:minHeight="48dp"
+                    app:tint="@color/colorOnSurface"
+                    app:srcCompat="@drawable/ic_more_vertical"/>
+            </LinearLayout>
+
         </com.google.android.material.appbar.MaterialToolbar>
         <ProgressBar
             android:id="@+id/progressIndicator"

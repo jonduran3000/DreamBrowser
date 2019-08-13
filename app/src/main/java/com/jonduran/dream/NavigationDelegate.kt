@@ -7,17 +7,25 @@ class NavigationDelegate(
     private val onBackPressed: (Boolean) -> Unit = { _ -> },
     private val onLocationChanged: (GeckoSession, String?) -> Unit = { _, _ -> }
 ) : OnBackPressedCallback(true), GeckoSession.NavigationDelegate {
-    private var canGoBack = false
+    private var _canGoBack = false
+    private var _canGoForward = false
 
     override fun handleOnBackPressed() {
-        onBackPressed(canGoBack)
+        onBackPressed(_canGoBack)
     }
 
     override fun onCanGoBack(session: GeckoSession, canGoBack: Boolean) {
-        this.canGoBack = canGoBack
+        _canGoBack = canGoBack
+    }
+
+    override fun onCanGoForward(session: GeckoSession, canGoForward: Boolean) {
+        _canGoForward = canGoForward
     }
 
     override fun onLocationChange(session: GeckoSession, url: String?) {
         onLocationChanged(session, url)
     }
+
+    fun canGoBack(): Boolean = _canGoBack
+    fun canGoForward(): Boolean = _canGoForward
 }

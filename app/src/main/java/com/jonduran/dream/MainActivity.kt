@@ -1,11 +1,17 @@
 package com.jonduran.dream
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Patterns
+import android.view.Gravity
 import android.view.KeyEvent
+import android.view.View
+import android.view.ViewGroup
+import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.AppCompatImageButton
 import androidx.core.net.toUri
 import androidx.core.view.isGone
 import kotlinx.android.synthetic.main.activity_main.*
@@ -44,7 +50,7 @@ class MainActivity : AppCompatActivity() {
         )
 
         setUpWebView(navigation)
-        setUpInput()
+        setUpToolbar(navigation)
         onBackPressedDispatcher.addCallback(this, navigation)
     }
 
@@ -60,10 +66,58 @@ class MainActivity : AppCompatActivity() {
         session.loadUri("about:buildconfig")
     }
 
-    private fun setUpInput() {
+
+    private fun setUpToolbar(navigation: NavigationDelegate) {
         setSupportActionBar(toolbar)
         supportActionBar?.displayOptions = ActionBar.DISPLAY_SHOW_CUSTOM
         input.setOnEditorActionListener(onEditorActionListener)
+        val popup = PopupWindow(this)
+        popup.isFocusable = true
+        popup.isOutsideTouchable = true
+
+        @SuppressLint("InflateParams")
+        val content = layoutInflater.inflate(R.layout.nav_action_layout, null)
+        
+        menuButton.setOnClickListener { view ->
+            showPopup(
+                navigation = navigation,
+                popup = popup,
+                contentView = content,
+                anchorView = view
+            )
+        }
+    }
+
+    private fun showPopup(
+        navigation: NavigationDelegate,
+        popup: PopupWindow,
+        contentView: View,
+        anchorView: View
+    ) {
+        val goBackButton = contentView.findViewById<AppCompatImageButton>(R.id.goBackButton)
+        goBackButton.isEnabled = navigation.canGoBack()
+        goBackButton.setOnClickListener {
+            session.goBack()
+            popup.dismiss()
+        }
+
+        val goForwardButton = contentView.findViewById<AppCompatImageButton>(R.id.goForwardButton)
+        goForwardButton.isEnabled = navigation.canGoForward()
+        goForwardButton.setOnClickListener {
+            session.goForward()
+            popup.dismiss()
+        }
+
+        val refreshButton = contentView.findViewById<AppCompatImageButton>(R.id.refreshButton)
+        refreshButton.setOnClickListener {
+            session.reload()
+            popup.dismiss()
+        }
+
+        popup.contentView = contentView
+        popup.width = ViewGroup.LayoutParams.WRAP_CONTENT
+        popup.height = ViewGroup.LayoutParams.WRAP_CONTENT
+        popup.showAsDropDown(anchorView, anchorView.right, anchorView.top, Gravity.NO_GRAVITY)
     }
 
     private val onEditorActionListener = object : TextView.OnEditorActionListener {
