@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -45,9 +46,14 @@
             app:srcCompat="@drawable/ic_refresh" />
     </LinearLayout>
 
-    <com.google.android.material.navigation.NavigationView
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/blockedTrackers"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:menu="@menu/popup_menu"
-        app:elevation="0dp"/>
+        android:layout_height="48dp"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:gravity="center_vertical"
+        android:textAppearance="?textAppearanceSubtitle2"
+        android:textColor="@color/colorOnSurface"
+        tools:text="Blocked Trackers (99)"/>
 </LinearLayout>

@@ -21,16 +21,15 @@ import org.mozilla.geckoview.GeckoSessionSettings
 
 class MainActivity : AppCompatActivity() {
     private lateinit var runtime: GeckoRuntime
-    private val session = GeckoSession(
-        GeckoSessionSettings.Builder()
-            .usePrivateMode(true)
-            .useTrackingProtection(true)
-            .userAgentMode(GeckoSessionSettings.USER_AGENT_MODE_MOBILE)
-            .userAgentOverride("")
-            .suspendMediaWhenInactive(true)
-            .allowJavascript(true)
-            .build()
-    )
+    private val settings = GeckoSessionSettings.Builder()
+        .usePrivateMode(true)
+        .useTrackingProtection(true)
+        .userAgentMode(GeckoSessionSettings.USER_AGENT_MODE_MOBILE)
+        .userAgentOverride("")
+        .suspendMediaWhenInactive(true)
+        .allowJavascript(true)
+        .build()
+    private val session = GeckoSession(settings)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,44 +42,57 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     finish()
                 }
-            },
-            onLocationChanged = { _, url ->
-                input.setText(url, TextView.BufferType.EDITABLE)
             }
         )
 
-        setUpWebView(navigation)
-        setUpToolbar(navigation)
+        val contentBlocking = ContentBlockingDelegate()
+        setUpWebView(navigation, contentBlocking)
+        setUpToolbar(navigation, contentBlocking)
         onBackPressedDispatcher.addCallback(this, navigation)
     }
 
-    private fun setUpWebView(navigationDelegate: GeckoSession.NavigationDelegate) {
+    private fun setUpWebView(
+        navigationDelegate: GeckoSession.NavigationDelegate,
+        contentBlockingDelegate: ContentBlockingDelegate
+    ) {
         runtime = GeckoRuntime.create(this)
         session.open(runtime)
         webView.setSession(session)
         session.navigationDelegate = navigationDelegate
-        session.progressDelegate = ProgressDelegate { _, progress ->
-            progressIndicator.progress = progress
-            progressIndicator.isGone = progress >= 100
-        }
-        session.loadUri("about:buildconfig")
+        session.progressDelegate = ProgressDelegate(
+            onPageStarted = { _, url ->
+                contentBlockingDelegate.clear()
+                input.setText(url, TextView.BufferType.EDITABLE)
+            },
+            onProgressChanged = { _, progress ->
+                progressIndicator.progress = progress
+                progressIndicator.isGone = progress >= 100
+            }
+        )
+        session.contentBlockingDelegate = contentBlockingDelegate
+        session.loadUri("about:blank")
     }
 
 
-    private fun setUpToolbar(navigation: NavigationDelegate) {
+    private fun setUpToolbar(
+        navigation: NavigationDelegate,
+        contentBlocking: ContentBlockingDelegate
+    ) {
         setSupportActionBar(toolbar)
         supportActionBar?.displayOptions = ActionBar.DISPLAY_SHOW_CUSTOM
         input.setOnEditorActionListener(onEditorActionListener)
+
         val popup = PopupWindow(this)
         popup.isFocusable = true
         popup.isOutsideTouchable = true
 
         @SuppressLint("InflateParams")
         val content = layoutInflater.inflate(R.layout.nav_action_layout, null)
-        
+
         menuButton.setOnClickListener { view ->
             showPopup(
                 navigation = navigation,
+                contentBlocking = contentBlocking,
                 popup = popup,
                 contentView = content,
                 anchorView = view
@@ -90,6 +102,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showPopup(
         navigation: NavigationDelegate,
+        contentBlocking: ContentBlockingDelegate,
         popup: PopupWindow,
         contentView: View,
         anchorView: View
@@ -113,6 +126,12 @@ class MainActivity : AppCompatActivity() {
             session.reload()
             popup.dismiss()
         }
+
+        val blockedTrackersLabel = contentView.findViewById<TextView>(R.id.blockedTrackers)
+        blockedTrackersLabel.text = getString(
+            R.string.blocked_trackers,
+            contentBlocking.getBlockedEvents().size
+        )
 
         popup.contentView = contentView
         popup.width = ViewGroup.LayoutParams.WRAP_CONTENT
